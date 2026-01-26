@@ -1,19 +1,20 @@
-# StockFolio
+# Real-Time Stock Trading Volume Dashboard
 
 ## Overview
 
-This project is a modern, clean, and professional-looking landing page for a fictional stock portfolio tracking application called "StockFolio". The design is inspired by the structure and feel of `formspree.io`.
+This project is a real-time stock trading volume dashboard that displays the top trading volume stocks for KOSPI and KOSDAQ. It also shows market indicators, real-time news, and popular search keywords.
 
 ## Features
 
-*   **Hero Section:** A prominent hero section with a clear value proposition.
-*   **Features Section:** A section highlighting the key features of the application.
-*   **How It Works Section:** A step-by-step guide on how to get started.
-*   **Call to Action (CTA):** A clear CTA to encourage users to sign up.
-*   **Modern Design:** A clean and professional design with a financial-themed color palette.
+*   **Real-Time Data:** Displays real-time stock data, which is currently mocked but can be connected to a real API.
+*   **KOSPI & KOSDAQ:** Shows the top trading volume stocks for both KOSPI and KOSDAQ markets.
+*   **Market Indicators:** Displays key market indicators like KOSPI and KOSDAQ indexes, exchange rates, and total trading volume.
+*   **Real-Time News:** Shows the latest news related to the stock market.
+*   **Popular Keywords:** Displays popular stock-related search keywords.
+*   **Responsive Design:** The layout is responsive and works on smaller screens.
 
 ## File Structure
 
-*   **`index.html`:** The main HTML file containing the structure of the landing page.
-*   **`style.css`:** The CSS file containing all the styles for the website, using CSS variables for easy customization.
-*   **`main.js`:** A placeholder for any future JavaScript interactivity.
+*   **`index.html`:** The main and only file, containing the HTML structure, CSS styles, and JavaScript logic for the dashboard.
+*   **`style.css`:** Intentionally left blank as all styles are inlined in `index.html`.
+*   **`main.js`:** Intentionally left blank as all scripts are inlined in `index.html`.

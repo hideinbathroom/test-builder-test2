@@ -1,1 +1,1 @@
-// Future JavaScript for interactions can be added here.
+// This file is intentionally left blank as all scripts are inlined in index.html
