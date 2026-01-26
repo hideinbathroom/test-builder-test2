@@ -3,21 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotto Number Generator</title>
+    <title>StockFolio - Your Ultimate Stock Companion</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Lotto Number Generator</h1>
-        <div class="theme-switch-container">
-            <label class="theme-switch" for="checkbox">
-                <input type="checkbox" id="checkbox" />
-                <div class="slider round"></div>
-            </label>
+    <header>
+        <nav class="container">
+            <a href="#" class="logo">StockFolio</a>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">Blog</a></li>
+            </ul>
+            <a href="#" class="btn btn-primary">Get Started</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>The Smart Way to Track Your Investments</h1>
+                <p>StockFolio provides you with the tools and insights to make better investment decisions. No jargon, just clarity.</p>
+                <a href="#" class="btn btn-primary">Create Your Portfolio</a>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2>All the tools you need, none of the clutter.</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Real-Time Data</h3>
+                        <p>Get up-to-the-minute stock prices and market data to stay ahead of the curve.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Advanced Analytics</h3>
+                        <p>Visualize your portfolio's performance with our advanced charting and analytics tools.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Personalized Watchlists</h3>
+                        <p>Create and monitor custom watchlists to keep an eye on stocks you're interested in.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works">
+            <div class="container">
+                <h2>Get started in 3 simple steps.</h2>
+                <div class="steps">
+                    <div class="step">
+                        <span>1</span>
+                        <h3>Create Your Account</h3>
+                        <p>Sign up for a free StockFolio account in seconds.</p>
+                    </div>
+                    <div class="step">
+                        <span>2</span>
+                        <h3>Link Your Brokerage</h3>
+                        <p>Securely connect your brokerage accounts to import your portfolio.</p>
+                    </div>
+                    <div class="step">
+                        <span>3</span>
+                        <h3>Start Tracking</h3>
+                        <p>That's it! You're ready to track your investments like a pro.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Ready to take control of your financial future?</h2>
+                <a href="#" class="btn btn-primary">Sign Up Now</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 StockFolio. All Rights Reserved.</p>
         </div>
-        <button id="generate">Generate Numbers</button>
-        <div class="numbers" id="numbers"></div>
-    </div>
+    </footer>
+
     <script src="main.js"></script>
 </body>
 </html>
