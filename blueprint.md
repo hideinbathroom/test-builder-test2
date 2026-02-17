@@ -20,6 +20,7 @@ This project is a real-time stock trading volume dashboard that displays the top
 *   **`style.css`:** Contains the CSS styles for the dashboard.
 *   **`main.js`:** Contains all the JavaScript logic for orchestrating updates of market data, top stocks, news, and managing the countdown. It fetches data from `/get-market-data`, `/get-top-stocks`, and `/get-news` endpoints.
 *   **`package.json`:** Defines project dependencies, including `node-html-parser` for HTML parsing and `iconv-lite` for character encoding conversion within Cloudflare Functions.
+*   **`wrangler.toml`:** Configuration file for Cloudflare Pages. It enables Node.js compatibility mode required for the functions to work correctly.
 *   **`functions/get-news.js`:** A Cloudflare Function responsible for securely fetching news articles from the GNews API.
 *   **`functions/get-market-data.js`:** A Cloudflare Function responsible for scraping KOSPI/KOSDAQ indexes, exchange rate, and hot keywords from Naver Finance. It now correctly handles `EUC-KR` encoding and uses more robust CSS selectors.
 *   **`functions/get-top-stocks.js`:** A Cloudflare Function responsible for scraping top trading volume stocks for KOSPI and KOSDAQ from Naver Finance. It now correctly handles `EUC-KR` encoding and uses more robust CSS selectors.
@@ -42,6 +43,10 @@ All real-time data on the dashboard is now fetched via dedicated Cloudflare Func
 3.  **Real-time News (`functions/get-news.js`)**:
     *   This function acts as a secure proxy to the GNews API, fetching top headlines for South Korea.
     *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
+
+**Build & Deployment Configuration**:
+*   **`wrangler.toml`**: The `nodejs_compat` compatibility flag is enabled in this file. This allows the Functions to use Node.js built-in APIs (like `buffer` and `string_decoder`), which are dependencies of `iconv-lite`. This is critical for fixing the build errors.
+*   **Cloudflare Pages Settings**: A build command (e.g., `npm install`) must be set in the project's "Build & deployments" settings to ensure dependencies from `package.json` are installed.
 
 **Client-Side Orchestration (`main.js`)**:
 *   The `main.js` script coordinates calls to these three Cloudflare Function endpoints every 1 hour (`setInterval(updateData, 3600000)`).
