@@ -1,0 +1,12 @@
+# This is a configuration file for Cloudflare Pages.
+# It's used to configure project-level settings.
+
+name = "pl-test-1"
+pages_build_output_dir = "." # Serve assets from the root directory.
+
+# The compatibility date specifies the version of the Workers runtime.
+compatibility_date = "2024-02-28" # Use a recent date.
+
+# Add the Node.js compatibility flag to enable Node.js built-in APIs.
+# This is required for libraries like 'iconv-lite' that use 'buffer' or 'string_decoder'.
+compatibility_flags = ["nodejs_compat"]
