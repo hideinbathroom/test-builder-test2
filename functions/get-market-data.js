@@ -1,13 +1,10 @@
 // functions/get-market-data.js
 import { parse } from 'node-html-parser';
+import iconv from 'iconv-lite';
 
-// 네이버 증권에서 시장 지표를 스크래핑하는 함수
 export async function onRequest(context) {
     try {
-        // 네이버 증권 메인 페이지 URL
         const url = 'https://finance.naver.com/';
-        
-        // CORS 문제를 피하기 위해 Cloudflare의 fetch를 사용해 페이지 HTML을 가져옵니다.
         const response = await fetch(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -15,48 +12,38 @@ export async function onRequest(context) {
         });
 
         if (!response.ok) {
-            throw new Error(`네이버 증권 페이지를 불러오는 데 실패했습니다: ${response.statusText}`);
+            throw new Error(`네이버 증권 페이지를 불러오는 데 실패했습니다: ${response.status}`);
         }
 
-        const html = await response.text();
+        // EUC-KR로 인코딩된 HTML을 디코딩
+        const buffer = await response.arrayBuffer();
+        const html = iconv.decode(Buffer.from(buffer), 'euc-kr');
         const root = parse(html);
 
-        // 코스피 지수 정보 추출
-        const kospiElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.section_stock > div.kospi_area.group_quot.quot_opn > div.heading_area > a > span.num');
-        const kospiIndex = kospiElement ? kospiElement.text.trim() : 'N/A';
+        // 더 안정적인 선택자로 변경
+        const kospiIndex = root.querySelector('.kospi_area .num_value')?.text.trim() || 'N/A';
+        const kospiQuot = root.querySelector('.kospi_area .num_quot')?.text.trim().split(' ') || ['N/A'];
+        const kospiChange = kospiQuot[0] || 'N/A';
+        const kospiChangeRate = kospiQuot[1] || 'N/A';
         
-        const kospiChangeElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.section_stock > div.kospi_area.group_quot.quot_opn > div.heading_area > a > span.num2');
-        const kospiChange = kospiChangeElement ? kospiChangeElement.text.trim() : 'N/A';
+        const kosdaqIndex = root.querySelector('.kosdaq_area .num_value')?.text.trim() || 'N/A';
+        const kosdaqQuot = root.querySelector('.kosdaq_area .num_quot')?.text.trim().split(' ') || ['N/A'];
+        const kosdaqChange = kosdaqQuot[0] || 'N/A';
+        const kosdaqChangeRate = kosdaqQuot[1] || 'N/A';
 
-        const kospiChangeRateElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.section_stock > div.kospi_area.group_quot.quot_opn > div.heading_area > a > span.num3');
-        const kospiChangeRate = kospiChangeRateElement ? kospiChangeRateElement.text.trim() : 'N/A';
-
-
-        // 코스닥 지수 정보 추출
-        const kosdaqElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.section_stock > div.kosdaq_area.group_quot > div.heading_area > a > span.num');
-        const kosdaqIndex = kosdaqElement ? kosdaqElement.text.trim() : 'N/A';
-
-        const kosdaqChangeElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.section_stock > div.kosdaq_area.group_quot > div.heading_area > a > span.num2');
-        const kosdaqChange = kosdaqChangeElement ? kosdaqChangeElement.text.trim() : 'N/A';
-
-        const kosdaqChangeRateElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.section_stock > div.kosdaq_area.group_quot > div.heading_area > a > span.num3');
-        const kosdaqChangeRate = kosdaqChangeRateElement ? kosdaqChangeRateElement.text.trim() : 'N/A';
-
-
-        // 환율 정보 추출 (원/달러)
-        const exchangeRateElement = root.querySelector('#content > div.article > div.section2 > div.section_stock_market > div.market_include > div > table > tbody > tr:nth-child(1) > td:nth-child(1)');
+        // 환율 정보 추출 (USD)
+        const exchangeRateElement = root.querySelector('#exchangeList > li.on > a > .head_info > .value');
         const exchangeRate = exchangeRateElement ? exchangeRateElement.text.trim() : 'N/A';
 
         // 인기 검색어 추출
         const hotKeywords = [];
-        const keywordRows = root.querySelectorAll('#container > div.aside > div > div.group_aside > div.aside_area.aside_popular > table > tbody > tr');
+        const keywordRows = root.querySelectorAll('.aside_popular table tbody tr');
         keywordRows.forEach(row => {
             const keywordElement = row.querySelector('th > a');
             if (keywordElement) {
                 hotKeywords.push(keywordElement.text.trim());
             }
         });
-
 
         const data = {
             kospi: {
@@ -72,13 +59,12 @@ export async function onRequest(context) {
             exchangeRate: {
                 value: exchangeRate,
             },
-            hotKeywords: hotKeywords.slice(0, 5), // 상위 5개만 사용
+            hotKeywords: hotKeywords.slice(0, 5),
         };
 
         return new Response(JSON.stringify(data), {
             headers: {
                 'Content-Type': 'application/json',
-                // 5분(300초) 동안 결과를 캐시합니다.
                 'Cache-Control': 'public, max-age=3600',
             },
         });

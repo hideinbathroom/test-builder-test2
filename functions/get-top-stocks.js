@@ -1,30 +1,33 @@
 // functions/get-top-stocks.js
 import { parse } from 'node-html-parser';
+import iconv from 'iconv-lite';
 
 // Helper function to parse a single row of the stock table
 function parseStockRow(row) {
-    const rank = row.querySelector('th')?.text.trim() || (row.querySelector('td:nth-child(1)')?.text.trim());
-    if (!rank || isNaN(parseInt(rank))) return null; // Skip headers or invalid rows
+    const rankElement = row.querySelector('.no');
+    if (!rankElement) return null; // Skip headers or invalid rows
+    
+    const rank = rankElement.text.trim();
+    if (!rank || isNaN(parseInt(rank))) return null;
 
     const nameElement = row.querySelector('a.tltle');
     const name = nameElement ? nameElement.text.trim() : 'N/A';
 
-    const price = row.querySelector('td:nth-child(3)')?.text.trim() || 'N/A';
-    const changeElement = row.querySelector('td:nth-child(4)');
+    const price = row.querySelector('.number:nth-child(3)')?.text.trim() || 'N/A';
+    const changeElement = row.querySelector('.number:nth-child(4)');
     
     let change = '0';
-    let changeRate = '0.00';
-
     if (changeElement) {
-        const changeText = changeElement.text.trim();
-        const changeMatch = changeText.match(/([\d,.-]+)\s*([\d,.-]+%)/);
-        if (changeMatch) {
-            change = changeMatch[1];
-            changeRate = changeMatch[2];
-        }
+        change = changeElement.text.trim();
     }
-
-    const volume = row.querySelector('td:nth-child(5)')?.text.trim() || 'N/A';
+    
+    const changeRateElement = row.querySelector('.number:nth-child(5)');
+    let changeRate = '0.00%';
+    if (changeRateElement) {
+        changeRate = changeRateElement.text.trim();
+    }
+    
+    const volume = row.querySelector('.number:nth-child(6)')?.text.trim() || 'N/A';
 
     return {
         rank: parseInt(rank),
@@ -39,9 +42,7 @@ function parseStockRow(row) {
 
 // Function to scrape top stocks for a given market (KOSPI or KOSDAQ)
 async function scrapeMarket(marketType) {
-    // 1: KOSPI, 2: KOSDAQ
-    const marketCode = marketType === 'kospi' ? '1' : '2';
-    const url = `https://finance.naver.com/sise/sise_quant.naver?sosok=${marketCode === '1' ? '0' : '1'}`;
+    const url = `https://finance.naver.com/sise/sise_quant.naver?sosok=${marketType === 'kospi' ? '0' : '1'}`;
     
     const response = await fetch(url, {
         headers: {
@@ -50,14 +51,15 @@ async function scrapeMarket(marketType) {
     });
 
     if (!response.ok) {
-        throw new Error(`${marketType} 데이터를 불러오는 데 실패했습니다: ${response.statusText}`);
+        throw new Error(`${marketType} 데이터를 불러오는 데 실패했습니다: ${response.status}`);
     }
 
-    const html = await response.text();
+    const buffer = await response.arrayBuffer();
+    const html = iconv.decode(Buffer.from(buffer), 'euc-kr');
     const root = parse(html);
 
     const stockList = [];
-    const rows = root.querySelectorAll('table.type_2 tr');
+    const rows = root.querySelectorAll('table.type_2 tr[onmouseover]');
 
     for (const row of rows) {
         if (stockList.length >= 5) break; // We only need top 5
@@ -67,7 +69,6 @@ async function scrapeMarket(marketType) {
             stockList.push(stockData);
         }
     }
-
     return stockList;
 }
 
