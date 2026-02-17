@@ -1,98 +1,80 @@
 
-let countdown = 60; // 업데이트 주기를 60초로 변경
+let countdown = 300; // 5분 = 300초
 let countdownInterval;
 
-// 시장 지표 업데이트 함수 (데모)
-function updateMarketIndicators() {
-    const kospiChange = (Math.random() * 20 - 10).toFixed(2);
-    const kosdaqChange = (Math.random() * 10 - 5).toFixed(2);
+// 시장 지표 및 인기 검색어 UI 업데이트
+function displayMarketIndicators(data) {
+    if (!data || !data.kospi || !data.kosdaq || !data.exchangeRate) {
+        console.error('잘못된 시장 지표 데이터 형식');
+        return;
+    }
 
-    // 데모 데이터 (2026년 기준)
-    document.getElementById('kospiIndex').textContent = (5017 + parseFloat(kospiChange)).toFixed(2);
-    document.getElementById('kospiIndex').className = `stat-value ${kospiChange >= 0 ? 'stat-up' : 'stat-down'}`;
+    const { kospi, kosdaq, exchangeRate, hotKeywords } = data;
 
-    document.getElementById('kosdaqIndex').textContent = (1014 + parseFloat(kosdaqChange)).toFixed(2);
-    document.getElementById('kosdaqIndex').className = `stat-value ${kosdaqChange >= 0 ? 'stat-up' : 'stat-down'}`;
+    const kospiIndexEl = document.getElementById('kospiIndex');
+    kospiIndexEl.textContent = kospi.index;
+    kospiIndexEl.className = `stat-value ${parseFloat(kospi.change) >= 0 ? 'stat-up' : 'stat-down'}`;
 
-    document.getElementById('exchangeRate').textContent = (1446 + Math.random() * 30).toFixed(2);
-    document.getElementById('totalVolume').textContent = (100 + Math.floor(Math.random() * 50)) + '억주';
-}
+    const kosdaqIndexEl = document.getElementById('kosdaqIndex');
+    kosdaqIndexEl.textContent = kosdaq.index;
+    kosdaqIndexEl.className = `stat-value ${parseFloat(kosdaq.change) >= 0 ? 'stat-up' : 'stat-down'}`;
 
-// 뉴스 업데이트 함수 (API 연동)
-async function updateNews() {
-    try {
-        const response = await fetch('/get-news');
-        if (!response.ok) {
-            throw new Error(`뉴스 데이터 요청 실패: ${response.statusText}`);
-        }
-        const articles = await response.json();
-        const newsContent = document.getElementById('newsContent');
-        
-        if (articles.length === 0) {
-            newsContent.innerHTML = '<div class="news-item"><div class="news-title">새로운 뉴스가 없습니다.</div></div>';
-            return;
-        }
+    document.getElementById('exchangeRate').textContent = exchangeRate.value;
+    
+    // 거래량은 현재 API에서 제공하지 않으므로 'N/A' 처리
+    document.getElementById('totalVolume').textContent = 'N/A'; 
 
-        let newsHtml = '';
-        articles.slice(0, 5).forEach(article => {
-            // 'Z'를 추가하여 UTC 시간임을 명확히 함
-            const publishedDate = new Date(article.publishedAt + 'Z'); 
-            const timeString = publishedDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-
-            newsHtml += `
-                <div class="news-item" onclick="window.open('${article.url}', '_blank')" style="cursor: pointer;">
-                    <div class="news-time">${timeString}</div>
-                    <div class="news-title">${article.title}</div>
+    // 인기 검색어 업데이트
+    const hotKeywordsEl = document.getElementById('hotKeywords');
+    if (hotKeywords && hotKeywords.length > 0) {
+        let keywordsHtml = '';
+        hotKeywords.forEach((keyword, index) => {
+            keywordsHtml += `
+                <div class="market-indicator">
+                    <span class="indicator-name">${index + 1}. ${keyword}</span>
                 </div>
             `;
         });
-        newsContent.innerHTML = newsHtml;
-    } catch (error) {
-        console.error('뉴스 업데이트 중 오류 발생:', error);
-        document.getElementById('newsContent').innerHTML = '<div class="news-item"><div class="news-title">뉴스 정보를 불러오는 데 실패했습니다.</div></div>';
+        hotKeywordsEl.innerHTML = keywordsHtml;
     }
 }
 
 
-// ============================================
-// 실시간 주식 데이터 가져오기 (현재는 데모)
-// ============================================
-async function fetchStockData() {
-    // 이 부분은 나중에 실제 주식 API로 대체될 수 있습니다.
-    // 현재는 시뮬레이션 데이터 사용
-    const kospiStocks = generateMockData('코스피');
-    const kosdaqStocks = generateMockData('코스닥');
-
-    return { kospi: kospiStocks, kosdaq: kosdaqStocks };
+// 뉴스 UI 업데이트
+function displayNews(articles) {
+     const newsContent = document.getElementById('newsContent');
+    if (!articles || articles.length === 0) {
+        newsContent.innerHTML = '<div class="news-item"><div class="news-title">새로운 뉴스가 없습니다.</div></div>';
+        return;
+    }
+    
+    let newsHtml = '';
+    articles.slice(0, 5).forEach(article => {
+        const publishedDate = new Date(article.publishedAt);
+        const timeString = publishedDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        newsHtml += `
+            <div class="news-item" onclick="window.open('${article.url}', '_blank')" style="cursor: pointer;">
+                <div class="news-time">${timeString}</div>
+                <div class="news-title">${article.title}</div>
+            </div>
+        `;
+    });
+    newsContent.innerHTML = newsHtml;
 }
 
-// 데모용 주식 데이터 생성 함수
-function generateMockData(market) {
-    const companies = market === '코스피'
-        ? ['삼성전자', 'SK하이닉스', '한화갤러리아', '에스엠벡셀', '삼성전자우']
-        : ['휴림로봇', '다날', '휴림에이텍', '에코프로', '쎄노텍'];
-
-    const basePrices = market === '코스피'
-        ? [152700, 550000, 1860, 2690, 114000]
-        : [15690, 10180, 1177, 130000, 2000];
-
-    return companies.map((name, index) => ({
-        rank: index + 1,
-        name: name,
-        price: basePrices[index] + Math.floor(Math.random() * 1000) - 500,
-        change: (Math.random() * 10 - 5).toFixed(2),
-        changeRate: (Math.random() * 5 - 2.5).toFixed(2),
-        volume: Math.floor(Math.random() * 50000000) + 10000000
-    }));
-}
 
 // 숫자 포맷팅 함수
-function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+function formatNumber(numStr) {
+    if (typeof numStr !== 'string') return numStr;
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// 거래량 포맷팅 함수
-function formatVolume(volume) {
+// 거래량 포맷팅 함수 (스크래핑 데이터에 맞게 조정)
+function formatVolume(volumeStr) {
+    if (typeof volumeStr !== 'string') return volumeStr;
+    const volume = parseInt(volumeStr.replace(/,/g, ''), 10);
+    if (isNaN(volume)) return volumeStr;
+
     if (volume >= 1000000) {
         return (volume / 1000000).toFixed(1) + '백만';
     } else if (volume >= 1000) {
@@ -101,8 +83,12 @@ function formatVolume(volume) {
     return volume.toString();
 }
 
-// 주식 테이블 생성 함수
+// 주식 테이블 생성 함수 (스크래핑 데이터에 맞게 조정)
 function createTable(stocks) {
+    if (!stocks || stocks.length === 0) {
+         return '<div class="loading">종목 정보를 불러오는 데 실패했거나 데이터가 없습니다.</div>';
+    }
+
     let html = `
         <table>
             <thead>
@@ -118,8 +104,10 @@ function createTable(stocks) {
     `;
 
     stocks.forEach(stock => {
-        const priceClass = stock.change >= 0 ? 'price-up' : 'price-down';
-        const changeSymbol = stock.change >= 0 ? '▲' : '▼';
+        // 스크래핑 데이터는 등락 부호가 changeRate에 포함되어 있음
+        const isUp = !stock.changeRate.includes('-');
+        const priceClass = isUp ? 'price-up' : 'price-down';
+        const changeSymbol = isUp ? '▲' : '▼';
 
         html += `
             <tr>
@@ -127,7 +115,7 @@ function createTable(stocks) {
                 <td class="stock-name">${stock.name}</td>
                 <td class="${priceClass}">${formatNumber(stock.price)}원</td>
                 <td class="${priceClass}">
-                    ${changeSymbol} ${Math.abs(stock.change)} (${Math.abs(stock.changeRate)}%)
+                    ${changeSymbol} ${formatNumber(stock.change)} (${stock.changeRate})
                 </td>
                 <td class="volume">${formatVolume(stock.volume)}</td>
             </tr>
@@ -143,17 +131,28 @@ function createTable(stocks) {
 
 // 전체 데이터 업데이트 함수
 async function updateData() {
-    try {
-        // 주식 데이터 업데이트 (현재는 데모)
-        const stockData = await fetchStockData();
-        document.getElementById('kospiContent').innerHTML = createTable(stockData.kospi);
-        document.getElementById('kosdaqContent').innerHTML = createTable(stockData.kosdaq);
+    // 로딩 스피너를 다시 표시
+    document.getElementById('kospiContent').innerHTML = '<div class="loading"><div class="spinner"></div>데이터를 불러오는 중입니다...</div>';
+    document.getElementById('kosdaqContent').innerHTML = '<div class="loading"><div class="spinner"></div>데이터를 불러오는 중입니다...</div>';
 
-        // 사이드바 지표 업데이트 (데모)
-        updateMarketIndicators();
+    try {
+        const [marketData, topStocks, newsArticles] = await Promise.all([
+            fetch('/get-market-data').then(res => res.json()),
+            fetch('/get-top-stocks').then(res => res.json()),
+            fetch('/get-news').then(res => res.json())
+        ]);
         
-        // 뉴스 데이터 업데이트 (API 호출)
-        await updateNews();
+        // 에러가 있는 응답을 확인
+        if (marketData.error) throw new Error(`시장 데이터 오류: ${marketData.error}`);
+        if (topStocks.error) throw new Error(`종목 데이터 오류: ${topStocks.error}`);
+        if (newsArticles.error) throw new Error(`뉴스 데이터 오류: ${newsArticles.error}`);
+
+
+        // UI 업데이트
+        displayMarketIndicators(marketData);
+        document.getElementById('kospiContent').innerHTML = createTable(topStocks.kospi);
+        document.getElementById('kosdaqContent').innerHTML = createTable(topStocks.kosdaq);
+        displayNews(newsArticles);
 
         const now = new Date();
         document.getElementById('lastUpdate').textContent = `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')}`;
@@ -168,7 +167,7 @@ async function updateData() {
 
 // 카운트다운 리셋 함수
 function resetCountdown() {
-    countdown = 60;
+    countdown = 300;
     updateCountdownDisplay();
 }
 
@@ -179,11 +178,11 @@ function updateCountdownDisplay() {
 
 // 카운트다운 시작 함수
 function startCountdown() {
-    clearInterval(countdownInterval); // 기존 인터벌 클리어
+    clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
         countdown--;
         if (countdown < 0) {
-            countdown = 60; // 즉시 리셋하지 않고 다음 업데이트 주기에 맞춤
+            countdown = 300; 
         }
         updateCountdownDisplay();
     }, 1000);
@@ -191,14 +190,9 @@ function startCountdown() {
 
 // 초기화 함수
 function initialize() {
-    // 페이지 로드 시 즉시 데이터 표시
-    updateData();
-
-    // 60초마다 자동 갱신
-    setInterval(updateData, 60000);
-
-    // 카운트다운 시작
-    startCountdown();
+    updateData(); // 페이지 로드 시 즉시 데이터 표시
+    setInterval(updateData, 300000); // 5분마다 자동 갱신
+    startCountdown(); // 카운트다운 시작
 }
 
 // DOM이 준비되면 초기화 함수 실행
