@@ -43,7 +43,7 @@ export async function onRequest(context) {
             headers: {
                 'Content-Type': 'application/json',
                 // 캐시 설정을 통해 1분(60초) 동안 결과를 캐시하여 불필요한 API 호출을 줄입니다.
-                'Cache-Control': 'public, max-age=60',
+                'Cache-Control': 'public, max-age=3600',
             },
         });
 

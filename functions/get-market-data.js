@@ -79,7 +79,7 @@ export async function onRequest(context) {
             headers: {
                 'Content-Type': 'application/json',
                 // 5분(300초) 동안 결과를 캐시합니다.
-                'Cache-Control': 'public, max-age=300',
+                'Cache-Control': 'public, max-age=3600',
             },
         });
 

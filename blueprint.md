@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is a real-time stock trading volume dashboard that displays the top trading volume stocks for KOSPI and KOSDAQ. It now includes a real-time news feed, market indicators, top stocks, and popular search keywords, all fetched via Cloudflare Functions and updated every 30 minutes.
+This project is a real-time stock trading volume dashboard that displays the top trading volume stocks for KOSPI and KOSDAQ. It now includes a real-time news feed, market indicators, top stocks, and popular search keywords, all fetched via Cloudflare Functions and updated every 1 hour.
 
 ## Features
 
@@ -12,7 +12,7 @@ This project is a real-time stock trading volume dashboard that displays the top
 *   **Real-Time News:** Fetches and displays the latest news from the GNews API via a Cloudflare Function.
 *   **Popular Keywords:** Displays popular stock-related search keywords scraped from Naver Finance.
 *   **Responsive Design:** The layout is responsive and works on smaller screens.
-*   **30-Minute Update Interval:** All dynamic data on the page is updated every 30 minutes.
+*   **1-Hour Update Interval:** All dynamic data on the page is updated every 1 hour.
 
 ## File Structure
 
@@ -27,22 +27,22 @@ This project is a real-time stock trading volume dashboard that displays the top
 
 ## Implementation Details
 
-### Real-time Data via Cloudflare Functions (Updated to 30-minute interval)
+### Real-time Data via Cloudflare Functions (Updated to 1-hour interval)
 
-All real-time data on the dashboard is now fetched via dedicated Cloudflare Functions, ensuring both security and efficient data retrieval. The update interval for all data has been standardized to **30 minutes**.
+All real-time data on the dashboard is now fetched via dedicated Cloudflare Functions, ensuring both security and efficient data retrieval. The update interval for all data has been standardized to **1 hour**.
 
 1.  **Market Indicators & Hot Keywords (`functions/get-market-data.js`)**:
     *   This function scrapes real-time KOSPI and KOSDAQ indices, exchange rates (USD/KRW), and popular search keywords directly from Naver Finance.
-    *   Data is cached for 30 minutes (`Cache-Control: max-age=1800`).
+    *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
 2.  **KOSPI & KOSDAQ Top Stocks (`functions/get-top-stocks.js`)**:
     *   This function scrapes the top 5 trading volume stocks for both KOSPI and KOSDAQ markets from Naver Finance.
-    *   Data is cached for 30 minutes (`Cache-Control: max-age=1800`).
+    *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
 3.  **Real-time News (`functions/get-news.js`)**:
     *   This function acts as a secure proxy to the GNews API, fetching top headlines for South Korea.
-    *   Data is cached for 30 minutes (`Cache-Control: max-age=1800`).
+    *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
 
 **Client-Side Orchestration (`main.js`)**:
-*   The `main.js` script coordinates calls to these three Cloudflare Function endpoints every 30 minutes (`setInterval(updateData, 1800000)`).
+*   The `main.js` script coordinates calls to these three Cloudflare Function endpoints every 1 hour (`setInterval(updateData, 3600000)`).
 *   It dynamically updates the corresponding sections of `index.html` with the fetched data.
 *   A countdown timer visualizes the time remaining until the next update.
 

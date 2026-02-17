@@ -82,7 +82,7 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({ kospi, kosdaq }), {
             headers: {
                 'Content-Type': 'application/json',
-                'Cache-Control': 'public, max-age=300', // 5-minute cache
+                'Cache-Control': 'public, max-age=3600', // 1-hour cache
             },
         });
     } catch (error) {

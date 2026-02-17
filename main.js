@@ -1,5 +1,5 @@
 
-let countdown = 300; // 5분 = 300초
+let countdown = 3600; // 1시간 = 3600초
 let countdownInterval;
 
 // 시장 지표 및 인기 검색어 UI 업데이트
@@ -191,7 +191,7 @@ function startCountdown() {
 // 초기화 함수
 function initialize() {
     updateData(); // 페이지 로드 시 즉시 데이터 표시
-    setInterval(updateData, 300000); // 5분마다 자동 갱신
+    setInterval(updateData, 3600000); // 1시간마다 자동 갱신
     startCountdown(); // 카운트다운 시작
 }
 
