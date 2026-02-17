@@ -367,320 +367,42 @@
         </main>
 
         <!-- 오른쪽 사이드바 -->
-        <aside class="sidebar sidebar-right">
-            <h3>📰 실시간 뉴스</h3>
-            <div id="newsContent">
-                <div class="news-item">
-                    <div class="news-time">방금 전</div>
-                    <div class="news-title">코스피 5000선 돌파, 사상 최고치 경신</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-time">5분 전</div>
-                    <div class="news-title">코스닥 1000선 회복, 4년 만에 '천스닥'</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-time">10분 전</div>
-                    <div class="news-title">삼성전자 거래대금 18조 돌파, 반도체 강세</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-time">15분 전</div>
-                    <div class="news-title">에코프로 18% 급등, 2차전지 업종 강세</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-time">20분 전</div>
-                    <div class="news-title">외국인·기관 동반 순매수, 시장 활황</div>
-                </div>
-            </div>
-
-            <h3 style="margin-top: 25px;">🔥 인기 검색어</h3>
-            <div id="hotKeywords">
-                <div class="market-indicator">
-                    <span class="indicator-name">1. 삼성전자</span>
-                    <span class="indicator-value stat-up">▲</span>
-                </div>
-                <div class="market-indicator">
-                    <span class="indicator-name">2. SK하이닉스</span>
-                    <span class="indicator-value stat-up">▲</span>
-                </div>
-                <div class="market-indicator">
-                    <span class="indicator-name">3. 셀트리온</span>
-                    <span class="indicator-value stat-down">▼</span>
-                </div>
-                <div class="market-indicator">
-                    <span class="indicator-name">4. 현대차</span>
-                    <span class="indicator-value">-</span>
-                </div>
-                <div class="market-indicator">
-                    <span class="indicator-name">5. 카카오</span>
-                    <span class="indicator-value stat-up">▲</span>
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <script>
-        let countdown = 30;
-        let countdownInterval;
-
-        // 시장 지표 업데이트 함수
-        function updateMarketIndicators() {
-            const kospiChange = (Math.random() * 20 - 10).toFixed(2);
-            const kosdaqChange = (Math.random() * 10 - 5).toFixed(2);
-
-            // 실제 시장 데이터 기반 (2026년 1월 26일)
-            document.getElementById('kospiIndex').textContent = (5017 + parseFloat(kospiChange)).toFixed(2);
-            document.getElementById('kospiIndex').className = `stat-value ${kospiChange >= 0 ? 'stat-up' : 'stat-down'}`;
-
-            document.getElementById('kosdaqIndex').textContent = (1014 + parseFloat(kosdaqChange)).toFixed(2);
-            document.getElementById('kosdaqIndex').className = `stat-value ${kosdaqChange >= 0 ? 'stat-up' : 'stat-down'}`;
-
-            document.getElementById('exchangeRate').textContent = (1446 + Math.random() * 30).toFixed(2);
-            document.getElementById('totalVolume').textContent = (100 + Math.floor(Math.random() * 50)) + '억주';
-        }
-
-        // 뉴스 업데이트 함수
-        function updateNews() {
-            const newsTemplates = [
-                '코스피 5000선 돌파, 사상 최고치 경신',
-                '코스닥 1000선 회복, 4년 만에 천스닥',
-                '삼성전자 반도체 강세, 거래량 폭증',
-                '에코프로 18% 급등, 2차전지 업종 주목',
-                '휴림로봇 거래량 1위, 로봇 산업 활황',
-                'SK하이닉스 AI 메모리 수요 급증',
-                '외국인·기관 동반 순매수세 지속',
-                '코스피 연초 대비 15% 상승, 글로벌 최고',
-                '환율 1440원대, 수출주 호재',
-                '반도체·2차전지 동반 상승세'
-            ];
-
-            const times = ['방금 전', '5분 전', '10분 전', '15분 전', '20분 전'];
-            let newsHtml = '';
-
-            for (let i = 0; i < 5; i++) {
-                const randomNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
-                newsHtml += `
-                    <div class="news-item">
-                        <div class="news-time">${times[i]}</div>
-                        <div class="news-title">${randomNews}</div>
+                <aside class="sidebar sidebar-right">
+                    <h3>📰 실시간 뉴스</h3>
+                    <div id="newsContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            뉴스를 불러오는 중입니다...
+                        </div>
                     </div>
-                `;
-            }
-
-            document.getElementById('newsContent').innerHTML = newsHtml;
-        }
-
-        // ============================================
-        // 실시간 데이터 가져오기 (API 연동 필요)
-        // ============================================
-
-        async function fetchStockData() {
-            // [중요] 실제 실시간 데이터를 받으려면 아래 API 중 하나를 선택하여 연동하세요
-
-            // 방법 1) 한국투자증권 Open API (추천)
-            // - 무료 계좌 개설 후 API 키 발급
-            // - https://apiportal.koreainvestment.com/
-            // - 실시간 시세, 거래량 상위 종목 조회 가능
-
-            // 방법 2) 한국거래소(KRX) 공식 데이터
-            // - http://data.krx.co.kr/
-            // - 무료이지만 실시간이 아닌 종가 기준 데이터
-
-            // 방법 3) 키움증권 Open API (KOA Studio)
-            // - 가장 많이 사용되는 API
-            // - 계좌 개설 및 API 신청 필요
-
-            // 방법 4) LS증권 XingAPI
-            // - 실시간 데이터 제공
-            // - 계좌 개설 후 사용 가능
-
-            // ============================================
-            // API 연동 예시 코드 (한국투자증권 기준)
-            // ============================================
-            /*
-            const API_KEY = 'YOUR_API_KEY';
-            const API_SECRET = 'YOUR_API_SECRET';
-            const ACCESS_TOKEN = await getAccessToken(API_KEY, API_SECRET);
-
-            // 코스피 거래량 상위 종목 조회
-            const kospiResponse = await fetch('https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/volume-rank', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': `Bearer ${ACCESS_TOKEN}`,
-                    'appkey': API_KEY,
-                    'appsecret': API_SECRET,
-                    'tr_id': 'FHKST01010900'
-                }
-            });
-            const kospiData = await kospiResponse.json();
-
-            // 코스닥 거래량 상위 종목 조회
-            const kosdaqResponse = await fetch('https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/volume-rank', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': `Bearer ${ACCESS_TOKEN}`,
-                    'appkey': API_KEY,
-                    'appsecret': API_SECRET,
-                    'tr_id': 'FHKST01010900'
-                },
-                params: {
-                    'FID_COND_MRKT_DIV_CODE': 'N', // N: 코스닥
-                    'FID_COND_SCR_DIV_CODE': '20171',
-                    'FID_INPUT_ISCD': '0000',
-                    'FID_DIV_CLS_CODE': '0',
-                    'FID_INPUT_PRICE_1': '',
-                    'FID_INPUT_PRICE_2': '',
-                    'FID_VOL_CNT': '',
-                    'FID_TRGT_CLS_CODE': '0',
-                    'FID_TRGT_EXLS_CLS_CODE': '0',
-                    'FID_INPUT_DATE_1': ''
-                }
-            });
-            const kosdaqData = await kosdaqResponse.json();
-
-            return processAPIData(kospiData, kosdaqData);
-            */
-
-            // ============================================
-            // 현재는 시뮬레이션 데이터 사용 (2026년 1월 26일 기준)
-            // ============================================
-            const kospiStocks = generateMockData('코스피');
-            const kosdaqStocks = generateMockData('코스닥');
-
-            return { kospi: kospiStocks, kosdaq: kosdaqStocks };
-        }
-
-        function generateMockData(market) {
-            const companies = market === '코스피'
-                ? ['삼성전자', 'SK하이닉스', '한화갤러리아', '에스엠벡셀', '삼성전자우']
-                : ['휴림로봇', '다날', '휴림에이텍', '에코프로', '쎄노텍'];
-
-            const basePrices = market === '코스피'
-                ? [152700, 550000, 1860, 2690, 114000]
-                : [15690, 10180, 1177, 130000, 2000];
-
-            return companies.map((name, index) => ({
-                rank: index + 1,
-                name: name,
-                price: basePrices[index] + Math.floor(Math.random() * 1000) - 500,
-                change: (Math.random() * 10 - 5).toFixed(2),
-                changeRate: (Math.random() * 5 - 2.5).toFixed(2),
-                volume: Math.floor(Math.random() * 50000000) + 10000000
-            }));
-        }
-
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-
-
-        function formatVolume(volume) {
-            if (volume >= 1000000) {
-                return (volume / 1000000).toFixed(1) + '백만';
-            } else if (volume >= 1000) {
-                return (volume / 1000).toFixed(0) + '천';
-            }
-            return volume.toString();
-        }
-
-        function createTable(stocks) {
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>순위</th>
-                            <th>종목명</th>
-                            <th>현재가</th>
-                            <th>등락률</th>
-                            <th>거래량</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            stocks.forEach(stock => {
-                const priceClass = stock.change >= 0 ? 'price-up' : 'price-down';
-                const changeSymbol = stock.change >= 0 ? '▲' : '▼';
-
-                html += `
-                    <tr>
-                        <td class="rank">${stock.rank}</td>
-                        <td class="stock-name">${stock.name}</td>
-                        <td class="${priceClass}">${formatNumber(stock.price)}원</td>
-                        <td class="${priceClass}">
-                            ${changeSymbol} ${Math.abs(stock.change)} (${Math.abs(stock.changeRate)}%)
-                        </td>
-                        <td class="volume">${formatVolume(stock.volume)}</td>
-                    </tr>
-                `;
-            });
-
-            html += `
-                    </tbody>
-                </table>
-            `;
-
-            return html;
-        }
-
-        async function updateData() {
-            try {
-                const data = await fetchStockData();
-
-                document.getElementById('kospiContent').innerHTML = createTable(data.kospi);
-                document.getElementById('kosdaqContent').innerHTML = createTable(data.kosdaq);
-
-                // 사이드바 업데이트
-                updateMarketIndicators();
-                updateNews();
-
-                const now = new Date();
-                document.getElementById('lastUpdate').textContent =
-                    `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')}`;
-
-                resetCountdown();
-            } catch (error) {
-                console.error('데이터 업데이트 실패:', error);
-                document.getElementById('kospiContent').innerHTML =
-                    '<div class="loading">데이터를 불러오는데 실패했습니다.</div>';
-                document.getElementById('kosdaqContent').innerHTML =
-                    '<div class="loading">데이터를 불러오는데 실패했습니다.</div>';
-            }
-        }
-
-        function resetCountdown() {
-            countdown = 30;
-            updateCountdownDisplay();
-        }
-
-        function updateCountdownDisplay() {
-            document.getElementById('countdown').textContent =
-                `다음 업데이트까지: ${countdown}초`;
-        }
-
-        function startCountdown() {
-            countdownInterval = setInterval(() => {
-                countdown--;
-                updateCountdownDisplay();
-
-                if (countdown <= 0) {
-                    countdown = 30;
-                }
-            }, 1000);
-        }
-
-        // 페이지 로드 시 즉시 데이터 표시
-        updateData();
-
-        // 30초마다 자동 갱신
-        setInterval(updateData, 30000);
-
-        // 카운트다운 시작
-        startCountdown();
-
         
-    </script>
-</body>
-</html>
+                    <h3 style="margin-top: 25px;">🔥 인기 검색어</h3>
+                    <div id="hotKeywords">
+                        <div class="market-indicator">
+                            <span class="indicator-name">1. 삼성전자</span>
+                            <span class="indicator-value stat-up">▲</span>
+                        </div>
+                        <div class="market-indicator">
+                            <span class="indicator-name">2. SK하이닉스</span>
+                            <span class="indicator-value stat-up">▲</span>
+                        </div>
+                        <div class="market-indicator">
+                            <span class="indicator-name">3. 셀트리온</span>
+                            <span class="indicator-value stat-down">▼</span>
+                        </div>
+                        <div class="market-indicator">
+                            <span class="indicator-name">4. 현대차</span>
+                            <span class="indicator-value">-</span>
+                        </div>
+                        <div class="market-indicator">
+                            <span class="indicator-name">5. 카카오</span>
+                            <span class="indicator-value stat-up">▲</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        
+            <script src="main.js" defer></script>
+        </body>
+        </html>
+        
