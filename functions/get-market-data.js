@@ -1,77 +1,64 @@
 // functions/get-market-data.js
-import { parse } from 'node-html-parser';
-import iconv from 'iconv-lite';
+
+// Helper function to fetch data from a Finnhub endpoint
+async function fetchFinnhubData(endpoint, apiKey) {
+    const url = `https://finnhub.io/api/v1${endpoint}&token=${apiKey}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Finnhub API 요청 실패: ${response.statusText}`);
+    }
+    return response.json();
+}
 
 export async function onRequest(context) {
+    // --- 사용자 설정 필요 ---
+    // Finnhub API 키를 Cloudflare 환경 변수로 저장해야 합니다.
+    // Cloudflare Pages 대시보드 > 설정 > 환경 변수에서
+    // 'FINNHUB_API_KEY'라는 이름으로 키를 추가하세요.
+    const API_KEY = context.env.FINNHUB_API_KEY;
+
+    if (!API_KEY) {
+        return new Response(JSON.stringify({ error: "FINNHUB_API_KEY가 설정되지 않았습니다." }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
     try {
-        const url = 'https://finance.naver.com/';
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            },
-        });
+        // Promise.all을 사용해 여러 API를 동시에 요청
+        const [kospiData, kosdaqData, forexData] = await Promise.all([
+            fetchFinnhubData('/quote?symbol=^KS11', API_KEY),
+            fetchFinnhubData('/quote?symbol=^KQ11', API_KEY),
+            fetchFinnhubData('/forex/rates?base=USD', API_KEY)
+        ]);
 
-        if (!response.ok) {
-            throw new Error(`네이버 증권 페이지를 불러오는 데 실패했습니다: ${response.status}`);
-        }
-
-        // EUC-KR로 인코딩된 HTML을 디코딩
-        const buffer = await response.arrayBuffer();
-        const html = iconv.decode(Buffer.from(buffer), 'euc-kr');
-        const root = parse(html);
-
-        // 더 안정적인 선택자로 변경
-        const kospiIndex = root.querySelector('.kospi_area .num_value')?.text.trim() || 'N/A';
-        const kospiQuot = root.querySelector('.kospi_area .num_quot')?.text.trim().split(' ') || ['N/A'];
-        const kospiChange = kospiQuot[0] || 'N/A';
-        const kospiChangeRate = kospiQuot[1] || 'N/A';
-        
-        const kosdaqIndex = root.querySelector('.kosdaq_area .num_value')?.text.trim() || 'N/A';
-        const kosdaqQuot = root.querySelector('.kosdaq_area .num_quot')?.text.trim().split(' ') || ['N/A'];
-        const kosdaqChange = kosdaqQuot[0] || 'N/A';
-        const kosdaqChangeRate = kosdaqQuot[1] || 'N/A';
-
-        // 환율 정보 추출 (USD)
-        const exchangeRateElement = root.querySelector('#exchangeList > li.on > a > .head_info > .value');
-        const exchangeRate = exchangeRateElement ? exchangeRateElement.text.trim() : 'N/A';
-
-        // 인기 검색어 추출
-        const hotKeywords = [];
-        const keywordRows = root.querySelectorAll('.aside_popular table tbody tr');
-        keywordRows.forEach(row => {
-            const keywordElement = row.querySelector('th > a');
-            if (keywordElement) {
-                hotKeywords.push(keywordElement.text.trim());
-            }
-        });
-
+        // API 응답에서 필요한 데이터만 추출 및 가공
         const data = {
             kospi: {
-                index: kospiIndex,
-                change: kospiChange,
-                changeRate: kospiChangeRate,
+                index: kospiData.c?.toFixed(2) || 'N/A', // c: current price
+                change: kospiData.d?.toFixed(2) || 'N/A', // d: change
+                changeRate: kospiData.dp?.toFixed(2) || 'N/A' // dp: percent change
             },
             kosdaq: {
-                index: kosdaqIndex,
-                change: kosdaqChange,
-                changeRate: kosdaqChangeRate,
+                index: kosdaqData.c?.toFixed(2) || 'N/A',
+                change: kosdaqData.d?.toFixed(2) || 'N/A',
+                changeRate: kosdaqData.dp?.toFixed(2) || 'N/A'
             },
             exchangeRate: {
-                value: exchangeRate,
-            },
-            hotKeywords: hotKeywords.slice(0, 5),
+                value: forexData.quote?.KRW?.toFixed(2) || 'N/A'
+            }
         };
 
         return new Response(JSON.stringify(data), {
             headers: {
                 'Content-Type': 'application/json',
-                'Cache-Control': 'public, max-age=3600',
+                'Cache-Control': 'public, max-age=3600', // 1시간 캐시
             },
         });
 
     } catch (error) {
-        console.error('시장 지표 데이터 스크래핑 오류:', error);
-        return new Response(JSON.stringify({ error: '서버에서 데이터를 가져오는 중 오류가 발생했습니다.' }), {
+        console.error('시장 지표 API 요청 오류:', error);
+        return new Response(JSON.stringify({ error: 'API에서 데이터를 가져오는 중 오류가 발생했습니다.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
