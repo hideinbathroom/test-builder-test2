@@ -19,23 +19,25 @@ This project is a real-time stock trading volume dashboard that displays the top
 *   **`index.html`:** The main HTML structure of the dashboard, linking to `main.js` for all JavaScript logic.
 *   **`style.css`:** Contains the CSS styles for the dashboard.
 *   **`main.js`:** Contains all the JavaScript logic for orchestrating updates of market data, top stocks, news, and managing the countdown. It fetches data from `/get-market-data`, `/get-top-stocks`, and `/get-news` endpoints.
-*   **`package.json`:** Defines project dependencies, including `node-html-parser` for web scraping within Cloudflare Functions.
+*   **`package.json`:** Defines project dependencies, including `node-html-parser` for HTML parsing and `iconv-lite` for character encoding conversion within Cloudflare Functions.
 *   **`functions/get-news.js`:** A Cloudflare Function responsible for securely fetching news articles from the GNews API.
-*   **`functions/get-market-data.js`:** A Cloudflare Function responsible for scraping KOSPI/KOSDAQ indexes, exchange rate, and hot keywords from Naver Finance.
-*   **`functions/get-top-stocks.js`:** A Cloudflare Function responsible for scraping top trading volume stocks for KOSPI and KOSDAQ from Naver Finance.
+*   **`functions/get-market-data.js`:** A Cloudflare Function responsible for scraping KOSPI/KOSDAQ indexes, exchange rate, and hot keywords from Naver Finance. It now correctly handles `EUC-KR` encoding and uses more robust CSS selectors.
+*   **`functions/get-top-stocks.js`:** A Cloudflare Function responsible for scraping top trading volume stocks for KOSPI and KOSDAQ from Naver Finance. It now correctly handles `EUC-KR` encoding and uses more robust CSS selectors.
 *   **`.gitignore`:** Specifies intentionally untracked files to ignore, such as `firebase-debug.log`.
 
 ## Implementation Details
 
 ### Real-time Data via Cloudflare Functions (Updated to 1-hour interval)
 
-All real-time data on the dashboard is now fetched via dedicated Cloudflare Functions, ensuring both security and efficient data retrieval. The update interval for all data has been standardized to **1 hour**.
+All real-time data on the dashboard is now fetched via dedicated Cloudflare Functions, ensuring both security and efficient data retrieval. The update interval for all data has been standardized to **1 hour**. The scraping functions have been enhanced to address character encoding and selector stability issues:
 
 1.  **Market Indicators & Hot Keywords (`functions/get-market-data.js`)**:
     *   This function scrapes real-time KOSPI and KOSDAQ indices, exchange rates (USD/KRW), and popular search keywords directly from Naver Finance.
+    *   **Fixes**: Now uses `iconv-lite` to correctly decode `EUC-KR` encoded HTML from Naver Finance, resolving character corruption. CSS selectors have been updated for improved robustness.
     *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
 2.  **KOSPI & KOSDAQ Top Stocks (`functions/get-top-stocks.js`)**:
     *   This function scrapes the top 5 trading volume stocks for both KOSPI and KOSDAQ markets from Naver Finance.
+    *   **Fixes**: Now uses `iconv-lite` to correctly decode `EUC-KR` encoded HTML from Naver Finance, resolving character corruption. CSS selectors have been updated for improved robustness.
     *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
 3.  **Real-time News (`functions/get-news.js`)**:
     *   This function acts as a secure proxy to the GNews API, fetching top headlines for South Korea.
