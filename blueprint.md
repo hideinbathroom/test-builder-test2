@@ -1,56 +1,59 @@
-# Real-Time Stock Trading Volume Dashboard
+# Real-Time Stock Market Dashboard
 
 ## Overview
 
-This project is a real-time stock trading volume dashboard that displays the top trading volume stocks for KOSPI and KOSDAQ. It now includes a real-time news feed, market indicators, top stocks, and popular search keywords, all fetched via Cloudflare Functions and updated every 1 hour.
+This project is a real-time stock market dashboard that displays key market indicators for KOSPI and KOSDAQ, and a real-time news feed. To ensure stability and reliability, this project has been refactored to use professional financial data APIs instead of brittle web scraping methods. Data is fetched via Cloudflare Functions and updated every 1 hour.
 
 ## Features
 
-*   **Real-Time Data:** Displays real-time stock data fetched from public sources (Naver Finance for market data and top stocks, GNews API for news) via Cloudflare Functions.
-*   **KOSPI & KOSDAQ Top Stocks:** Shows the top trading volume stocks for both KOSPI and KOSDAQ markets.
-*   **Market Indicators:** Displays key market indicators like KOSPI and KOSDAQ indexes, exchange rates.
-*   **Real-Time News:** Fetches and displays the latest news from the GNews API via a Cloudflare Function.
-*   **Popular Keywords:** Displays popular stock-related search keywords scraped from Naver Finance.
-*   **Responsive Design:** The layout is responsive and works on smaller screens.
+*   **Reliable Real-Time Data:** Displays real-time market data fetched from the **Finnhub API** and news from the **GNews API** via Cloudflare Functions.
+*   **Market Indicators:** Displays key market indicators like KOSPI (`^KS11`) and KOSDAQ (`^KQ11`) indexes and the USD/KRW exchange rate.
+*   **Real-Time News:** Fetches and displays the latest financial news for South Korea.
 *   **1-Hour Update Interval:** All dynamic data on the page is updated every 1 hour.
+*   **Deprecated Features:** The 'Top Stocks' and 'Hot Keywords' features have been removed as they were based on unstable scraping methods and no reliable free API provides this data. The UI now displays a "Premium Feature" message in jejich place.
+*   **Responsive Design:** The layout is responsive and works on smaller screens.
 
 ## File Structure
 
-*   **`index.html`:** The main HTML structure of the dashboard, linking to `main.js` for all JavaScript logic.
-*   **`style.css`:** Contains the CSS styles for the dashboard.
-*   **`main.js`:** Contains all the JavaScript logic for orchestrating updates of market data, top stocks, news, and managing the countdown. It fetches data from `/get-market-data`, `/get-top-stocks`, and `/get-news` endpoints.
-*   **`package.json`:** Defines project dependencies, including `node-html-parser` for HTML parsing and `iconv-lite` for character encoding conversion within Cloudflare Functions.
-*   **`wrangler.toml`:** Configuration file for Cloudflare Pages. It enables Node.js compatibility mode required for the functions to work correctly.
-*   **`functions/get-news.js`:** A Cloudflare Function responsible for securely fetching news articles from the GNews API.
-*   **`functions/get-market-data.js`:** A Cloudflare Function responsible for scraping KOSPI/KOSDAQ indexes, exchange rate, and hot keywords from Naver Finance. It now correctly handles `EUC-KR` encoding and uses more robust CSS selectors.
-*   **`functions/get-top-stocks.js`:** A Cloudflare Function responsible for scraping top trading volume stocks for KOSPI and KOSDAQ from Naver Finance. It now correctly handles `EUC-KR` encoding and uses more robust CSS selectors.
-*   **`.gitignore`:** Specifies intentionally untracked files to ignore, such as `firebase-debug.log`.
+*   **`index.html`:** The main HTML structure of the dashboard.
+*   **`style.css`:** All CSS styles for the dashboard.
+*   **`main.js`:** Contains the JavaScript logic for fetching data from the Cloudflare Functions and updating the UI.
+*   **`package.json`:** Defines project dependencies. It is now significantly simplified.
+*   **`wrangler.toml`:** Configuration file for Cloudflare Pages. It enables Node.js compatibility mode.
+*   **`functions/get-news.js`:** A Cloudflare Function that securely fetches news articles from the GNews API.
+*   **`functions/get-market-data.js`:** A Cloudflare Function that securely fetches market index and forex data from the Finnhub API.
+*   **`.gitignore`:** Specifies intentionally untracked files to ignore.
 
 ## Implementation Details
 
-### Real-time Data via Cloudflare Functions (Updated to 1-hour interval)
+### API-First Architecture
 
-All real-time data on the dashboard is now fetched via dedicated Cloudflare Functions, ensuring both security and efficient data retrieval. The update interval for all data has been standardized to **1 hour**. The scraping functions have been enhanced to address character encoding and selector stability issues:
+To permanently resolve recurring data fetching and build errors, the project has been refactored away from web scraping to an API-first architecture.
 
-1.  **Market Indicators & Hot Keywords (`functions/get-market-data.js`)**:
-    *   This function scrapes real-time KOSPI and KOSDAQ indices, exchange rates (USD/KRW), and popular search keywords directly from Naver Finance.
-    *   **Fixes**: Now uses `iconv-lite` to correctly decode `EUC-KR` encoded HTML from Naver Finance, resolving character corruption. CSS selectors have been updated for improved robustness.
-    *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
-2.  **KOSPI & KOSDAQ Top Stocks (`functions/get-top-stocks.js`)**:
-    *   This function scrapes the top 5 trading volume stocks for both KOSPI and KOSDAQ markets from Naver Finance.
-    *   **Fixes**: Now uses `iconv-lite` to correctly decode `EUC-KR` encoded HTML from Naver Finance, resolving character corruption. CSS selectors have been updated for improved robustness.
-    *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
-3.  **Real-time News (`functions/get-news.js`)**:
-    *   This function acts as a secure proxy to the GNews API, fetching top headlines for South Korea.
-    *   Data is cached for 1 hour (`Cache-Control: max-age=3600`).
+1.  **Market Data (Finnhub API):**
+    *   The `functions/get-market-data.js` function now connects to the professional Finnhub API.
+    *   It fetches quote data for KOSPI (`^KS11`), KOSDAQ (`^KQ11`), and USD/KRW forex rates.
+    *   This provides a stable, reliable, and correctly formatted (JSON) source of data, eliminating all previous encoding and 'N/A' errors.
+
+2.  **News Data (GNews API):**
+    *   The `functions/get-news.js` function remains, providing a stable source of news articles.
+
+3.  **Frontend Simplification (`main.js`)**:
+    *   The frontend logic has been streamlined to only request and render data from the reliable API sources.
+    *   The 'Top Stocks' and 'Hot Keywords' sections now display a message informing the user that these are premium features, ensuring the UI is never in a broken state.
 
 **Build & Deployment Configuration**:
-*   **`wrangler.toml`**: The `nodejs_compat` compatibility flag is enabled in this file. This allows the Functions to use Node.js built-in APIs (like `buffer` and `string_decoder`), which are dependencies of `iconv-lite`. This is critical for fixing the build errors.
-*   **Cloudflare Pages Settings**: A build command (e.g., `npm install`) must be set in the project's "Build & deployments" settings to ensure dependencies from `package.json` are installed.
+*   **`wrangler.toml`**: The `nodejs_compat` compatibility flag is enabled to ensure the Cloudflare Functions environment can handle any Node.js APIs if required by dependencies.
+*   **Cloudflare Pages Settings**: A build command (e.g., `npm install`) is required in the project's "Build & deployments" settings.
 
-**Client-Side Orchestration (`main.js`)**:
-*   The `main.js` script coordinates calls to these three Cloudflare Function endpoints every 1 hour (`setInterval(updateData, 3600000)`).
-*   It dynamically updates the corresponding sections of `index.html` with the fetched data.
-*   A countdown timer visualizes the time remaining until the next update.
+**Action Required: API Keys**
 
-**Action Required**: To make the real-time news feature fully functional, you must obtain a free API key from [GNews.io](https://gnews.io/) and configure it as an environment variable named `GNEWS_API_KEY` in your Cloudflare Pages project settings (under "Settings" > "Environment variables").
+To make the application fully functional, you must obtain free API keys from the following services and configure them as environment variables in your Cloudflare Pages project settings:
+
+1.  **`FINNHUB_API_KEY`**:
+    *   Go to **[https://finnhub.io/](https://finnhub.io/)** and click "Get free API key".
+    *   Set this key as an environment variable named `FINNHUB_API_KEY`.
+
+2.  **`GNEWS_API_KEY`**:
+    *   Go to **[https://gnews.io/](https://gnews.io/)** and click "Get Free API Key".
+    *   Set this key as an environment variable named `GNEWS_API_KEY`.
